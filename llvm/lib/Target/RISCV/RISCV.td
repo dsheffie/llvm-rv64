@@ -48,6 +48,7 @@ include "RISCVMacroFusion.td"
 
 include "RISCVSchedMIPSP8700.td"
 include "RISCVSchedRocket.td"
+include "RISCVSchedDsheffie.td"
 include "RISCVSchedSiFive7.td"
 include "RISCVSchedSiFiveP400.td"
 include "RISCVSchedSiFiveP500.td"
