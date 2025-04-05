@@ -458,7 +458,7 @@ RISCVLegalizerInfo::RISCVLegalizerInfo(const RISCVSubtarget &ST)
         .lower();
   }
 
-  if (ST.hasStdExtM()) {
+  if (/*ST.hasStdExtM()*/true) {
     getActionDefinitionsBuilder({G_SDIV, G_UDIV, G_UREM})
         .legalFor({sXLen})
         .customFor({s32})

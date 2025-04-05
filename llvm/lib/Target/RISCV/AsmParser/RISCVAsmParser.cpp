@@ -301,7 +301,11 @@ public:
     Parser.addAliasForDirective(".word", ".4byte");
     Parser.addAliasForDirective(".dword", ".8byte");
     setAvailableFeatures(ComputeAvailableFeatures(STI.getFeatureBits()));
-
+    setFeatureBits(RISCV::FeatureStdExtM, "m");
+    setFeatureBits(RISCV::FeatureStdExtA, "a");
+    
+    
+    
     auto ABIName = StringRef(Options.ABIName);
     if (ABIName.ends_with("f") && !getSTI().hasFeature(RISCV::FeatureStdExtF)) {
       errs() << "Hard-float 'f' ABI can't be used for a target that "
@@ -2875,6 +2879,7 @@ ParseStatus RISCVAsmParser::parseDirective(AsmToken DirectiveID) {
 
 bool RISCVAsmParser::resetToArch(StringRef Arch, SMLoc Loc, std::string &Result,
                                  bool FromOptionDirective) {
+  
   for (auto &Feature : RISCVFeatureKV)
     if (llvm::RISCVISAInfo::isSupportedExtensionFeature(Feature.Key))
       clearFeatureBits(Feature.Value, Feature.Key);
@@ -3050,10 +3055,11 @@ bool RISCVAsmParser::parseDirectiveOption() {
   if (Option == "norvc") {
     if (Parser.parseEOL())
       return true;
-
+    
     getTargetStreamer().emitDirectiveOptionNoRVC();
     clearFeatureBits(RISCV::FeatureStdExtC, "c");
     clearFeatureBits(RISCV::FeatureStdExtZca, "zca");
+    setFeatureBits(RISCV::FeatureStdExtM, "m");
     return false;
   }
 
@@ -3306,9 +3312,9 @@ bool RISCVAsmParser::parseDirectiveVariantCC() {
 
 void RISCVAsmParser::emitToStreamer(MCStreamer &S, const MCInst &Inst) {
   MCInst CInst;
-  bool Res = RISCVRVC::compress(CInst, Inst, getSTI());
-  if (Res)
-    ++RISCVNumInstrsCompressed;
+  bool Res = false;//RISCVRVC::compress(CInst, Inst, getSTI());
+  //if (Res)
+  //  ++RISCVNumInstrsCompressed;
   S.emitInstruction((Res ? CInst : Inst), getSTI());
 }
 

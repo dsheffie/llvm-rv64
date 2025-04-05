@@ -231,7 +231,6 @@ void MCSubtargetInfo::InitMCProcessorInfo(StringRef CPU, StringRef TuneCPU,
   FeatureBits =
       getFeatures(*this, CPU, TuneCPU, FS, ProcNames, ProcDesc, ProcFeatures);
   FeatureString = std::string(FS);
-
   if (!TuneCPU.empty())
     CPUSchedModel = &getSchedModelForCPU(TuneCPU);
   else
