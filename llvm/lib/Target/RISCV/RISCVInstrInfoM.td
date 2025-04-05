@@ -51,7 +51,7 @@ def MULW    : ALUW_rr<0b0000001, 0b000, "mulw", Commutable=1>,
               Sched<[WriteIMul32, ReadIMul32, ReadIMul32]>;
 } // Predicates = [IsRV64]
 
-let Predicates = [ IsRV64], IsSignExtendingOpW = 1 in {
+let Predicates = [IsRV64], IsSignExtendingOpW = 1 in {
 def DIVW    : ALUW_rr<0b0000001, 0b100, "divw">,
               Sched<[WriteIDiv32, ReadIDiv32, ReadIDiv32]>;
 def DIVUW   : ALUW_rr<0b0000001, 0b101, "divuw">,
@@ -100,9 +100,9 @@ def : Pat<(and (riscv_remuw (assertzexti32 GPR:$rs1),
 // produce a result where res[63:32]=0 and res[31]=1.
 def : Pat<(srem (sexti32 (i64 GPR:$rs1)), (sexti32 (i64 GPR:$rs2))),
           (REMW GPR:$rs1, GPR:$rs2)>;
-} // Predicates = [HasStdExtM, IsRV64]
+} // Predicates = [IsRV64]
 
-let Predicates = [NotHasStdExtZba] in {
+let Predicates = [IsRV64, NotHasStdExtZba] in {
 // Special case for calculating the full 64-bit product of a 32x32 unsigned
 // multiply where the inputs aren't known to be zero extended. We can shift the
 // inputs left by 32 and use a MULHU. This saves two SRLIs needed to finish
