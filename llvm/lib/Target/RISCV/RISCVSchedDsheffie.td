@@ -12,8 +12,8 @@
 
 // Dsheffie machine model for scheduling and other instruction cost heuristics.
 def DsheffieModel : SchedMachineModel {
-  let MicroOpBufferSize = 32; // Dsheffie is in-order.
-  let IssueWidth = 2;        // 1 micro-op is dispatched per cycle.
+  let MicroOpBufferSize = 32; // Dsheffie out-of-order.
+  let IssueWidth = 2;        // 2 micro-op is dispatched per cycle.
   let LoadLatency = 3;
   let MispredictPenalty = 10;
   let CompleteModel = false;
@@ -49,6 +49,7 @@ def : WriteRes<WriteJmp, [DsheffieUnitB]>;
 def : WriteRes<WriteJal, [DsheffieUnitB]>;
 def : WriteRes<WriteJalr, [DsheffieUnitB]>;
 
+
 // Integer arithmetic and logic
 def : WriteRes<WriteIALU32, [DsheffieUnitALU]>;
 def : WriteRes<WriteIALU, [DsheffieUnitALU]>;
@@ -56,6 +57,23 @@ def : WriteRes<WriteShiftImm32, [DsheffieUnitALU]>;
 def : WriteRes<WriteShiftImm, [DsheffieUnitALU]>;
 def : WriteRes<WriteShiftReg32, [DsheffieUnitALU]>;
 def : WriteRes<WriteShiftReg, [DsheffieUnitALU]>;
+
+def : WriteRes<WriteCLZ, [DsheffieUnitALU]>;
+def : WriteRes<WriteCLZ32, [DsheffieUnitALU]>;
+def : WriteRes<WriteCTZ, [DsheffieUnitALU]>;
+def : WriteRes<WriteCTZ32, [DsheffieUnitALU]>;
+def : WriteRes<WriteCPOP, [DsheffieUnitALU]>;
+def : WriteRes<WriteCPOP32, [DsheffieUnitALU]>;
+
+def : WriteRes<WriteIMinMax, [DsheffieUnitALU]>;
+def : WriteRes<WriteORCB, [DsheffieUnitALU]>;
+def : WriteRes<WriteREV8, [DsheffieUnitALU]>;
+def : WriteRes<WriteRotateReg, [DsheffieUnitALU]>;
+def : WriteRes<WriteRotateReg32, [DsheffieUnitALU]>;
+def : WriteRes<WriteRotateImm,  [DsheffieUnitALU]>;
+def : WriteRes<WriteRotateImm32,  [DsheffieUnitALU]>;
+def : WriteRes<WriteSHXADD, [DsheffieUnitALU]>;
+def : WriteRes<WriteSHXADD32, [DsheffieUnitALU]>;
 
 // Integer multiplication
 let Latency = 4 in {
@@ -200,6 +218,24 @@ def : ReadAdvance<ReadIRem, 0>;
 def : ReadAdvance<ReadIRem32, 0>;
 def : ReadAdvance<ReadIMul, 0>;
 def : ReadAdvance<ReadIMul32, 0>;
+def : ReadAdvance<ReadCLZ, 0>;
+def : ReadAdvance<ReadCLZ32, 0>;
+def : ReadAdvance<ReadCTZ, 0>;
+def : ReadAdvance<ReadCTZ32, 0>;
+
+def : ReadAdvance<ReadCPOP, 0>;
+def : ReadAdvance<ReadCPOP32, 0>;
+
+def : ReadAdvance<ReadIMinMax, 0>;
+def : ReadAdvance<ReadORCB, 0>;
+def : ReadAdvance<ReadREV8, 0>;
+def : ReadAdvance<ReadRotateReg, 0>;
+def : ReadAdvance<ReadRotateReg32, 0>;
+def : ReadAdvance<ReadRotateImm, 0>;
+def : ReadAdvance<ReadRotateImm32, 0>;
+def : ReadAdvance<ReadSHXADD, 0>;
+def : ReadAdvance<ReadSHXADD32, 0>;
+
 def : ReadAdvance<ReadAtomicWA, 0>;
 def : ReadAdvance<ReadAtomicWD, 0>;
 def : ReadAdvance<ReadAtomicDA, 0>;
@@ -249,8 +285,6 @@ def : ReadAdvance<ReadFClass64, 0>;
 // Unsupported extensions
 defm : UnsupportedSchedV;
 defm : UnsupportedSchedZabha;
-defm : UnsupportedSchedZba;
-defm : UnsupportedSchedZbb;
 defm : UnsupportedSchedZbc;
 defm : UnsupportedSchedZbs;
 defm : UnsupportedSchedZbkb;
