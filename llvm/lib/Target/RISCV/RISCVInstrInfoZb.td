@@ -344,7 +344,15 @@ def CTZ  : Unary_r<0b011000000001, 0b001, "ctz">,
            Sched<[WriteCTZ, ReadCTZ]>;
 def CPOP : Unary_r<0b011000000010, 0b001, "cpop">,
            Sched<[WriteCPOP, ReadCPOP]>;
+	   
+def FP32TOINT32 : Unary_r<0b011000000111, 0b001, "cvt.fp32.int32">,
+           Sched<[WriteCPOP, ReadCPOP]>;
 } // Predicates = [HasStdExtZbb]
+
+let Predicates = [HasStdExtZbb] in {
+def INT32TOFP32 : Unary_r<0b011000000110, 0b001, "cvt.int32.fp32">,
+           Sched<[WriteCPOP, ReadCPOP]>;
+}
 
 let Predicates = [HasStdExtZbb, IsRV64], IsSignExtendingOpW = 1 in {
 def CLZW  : UnaryW_r<0b011000000000, 0b001, "clzw">,

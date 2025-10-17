@@ -34,6 +34,14 @@ def MULHSU  : ALU_rr<0b0000001, 0b010, "mulhsu">,
 def MULHU   : ALU_rr<0b0000001, 0b011, "mulhu", Commutable=1>,
               Sched<[WriteIMul, ReadIMul, ReadIMul]>;
 
+def FP32MUL : ALU_rr<0b0000100, 0b000, "mul.fp32", Commutable=1>,
+               Sched<[WriteIMul, ReadIMul, ReadIMul]>;
+
+def FP32ADD : ALU_rr<0b0000010, 0b000, "add.fp32", Commutable=1>,
+               Sched<[WriteIMul, ReadIMul, ReadIMul]>;
+	       
+def FP32SUB : ALU_rr<0b0000011, 0b000, "sub.fp32">,
+               Sched<[WriteIMul, ReadIMul, ReadIMul]>;	       
 
 
 def DIV     : ALU_rr<0b0000001, 0b100, "div">,
