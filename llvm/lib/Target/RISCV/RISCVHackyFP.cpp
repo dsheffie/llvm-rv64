@@ -101,13 +101,28 @@ bool RISCVHackyFP::runOnMachineFunction(MachineFunction &MF) {
 	junk.push_back(&MI);
 	MadeChange = true;
       }
+      else if(strcmp("__floatsisf", symbolName) == 0) {
+	BuildMI(MBB, II, DebugLoc(), TII.get(RISCV::INT32TOFP32))
+	  .addUse(RISCV::X10)
+	  .addDef(RISCV::X10);
+	junk.push_back(&MI);
+	MadeChange = true;
+      }
+      else if(strcmp("__fixsfsi", symbolName) == 0) {
+	BuildMI(MBB, II, DebugLoc(), TII.get(RISCV::FP32TOINT32))
+	  .addUse(RISCV::X10)
+	  .addDef(RISCV::X10);
+	junk.push_back(&MI);
+	MadeChange = true;
+      }            
     }
   }
 
   for(MachineInstr *MI : junk) {
     MI->eraseFromParent();
   }
-      
+
+  
   
 
   return MadeChange;
