@@ -5,32 +5,6 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===---------------------------------------------------------------------===//
-//
-// This pass does some optimizations for *W instructions at the MI level.
-//
-// First it removes unneeded sext.w instructions. Either because the sign
-// extended bits aren't consumed or because the input was already sign extended
-// by an earlier instruction.
-//
-// Then:
-// 1. Unless explicit disabled or the target prefers instructions with W suffix,
-//    it removes the -w suffix from opw instructions whenever all users are
-//    dependent only on the lower word of the result of the instruction.
-//    The cases handled are:
-//    * addw because c.add has a larger register encoding than c.addw.
-//    * addiw because it helps reduce test differences between RV32 and RV64
-//      w/o being a pessimization.
-//    * mulw because c.mulw doesn't exist but c.mul does (w/ zcb)
-//    * slliw because c.slliw doesn't exist and c.slli does
-//
-// 2. Or if explicit enabled or the target prefers instructions with W suffix,
-//    it adds the W suffix to the instruction whenever all users are dependent
-//    only on the lower word of the result of the instruction.
-//    The cases handled are:
-//    * add/addi/sub/mul.
-//    * slli with imm < 32.
-//    * ld/lwu.
-//===---------------------------------------------------------------------===//
 
 #include "RISCV.h"
 #include "RISCVMachineFunctionInfo.h"
@@ -87,6 +61,54 @@ bool RISCVHackyFP::runOnMachineFunction(MachineFunction &MF) {
     return false;
 
   bool MadeChange = false;
+  SmallVector<MachineInstr*> junk;
+  
+  for (MachineBasicBlock &MBB : MF) {
+    for (MachineInstr &MI : llvm::make_early_inc_range(MBB)) {
+      /* llvm::errs() << MI << "\n"; */
+      
+      if(MI.getOpcode() != RISCV::PseudoCALL) {
+	continue;
+      }
+      auto II = MI.getIterator();
+
+      MachineOperand Func = MI.getOperand(0);
+      if(not(Func.isSymbol())) {
+	continue;
+      }
+      const char *symbolName = Func.getSymbolName();
+      if(strcmp("__mulsf3", symbolName) == 0) {
+	BuildMI(MBB, II, DebugLoc(), TII.get(RISCV::FP32MUL))
+	  .addUse(RISCV::X10)
+	  .addUse(RISCV::X11)
+	  .addDef(RISCV::X10);
+	junk.push_back(&MI);
+	MadeChange = true;
+      }
+      else if(strcmp("__addsf3", symbolName) == 0) {
+	BuildMI(MBB, II, DebugLoc(), TII.get(RISCV::FP32ADD))
+	  .addUse(RISCV::X10)
+	  .addUse(RISCV::X11)
+	  .addDef(RISCV::X10);
+	junk.push_back(&MI);
+	MadeChange = true;
+      }
+      else if(strcmp("__subsf3", symbolName) == 0) {
+	BuildMI(MBB, II, DebugLoc(), TII.get(RISCV::FP32SUB))
+	  .addUse(RISCV::X10)
+	  .addUse(RISCV::X11)
+	  .addDef(RISCV::X10);
+	junk.push_back(&MI);
+	MadeChange = true;
+      }
+    }
+  }
+
+  for(MachineInstr *MI : junk) {
+    MI->eraseFromParent();
+  }
+      
+  
 
   return MadeChange;
 }
