@@ -95,12 +95,13 @@ bool RISCVHackyFP::runOnMachineFunction(MachineFunction &MF) {
 	junk.push_back(&MI);
 	MadeChange = true;
       }
-#if 0                  
+#if 1                  
       else if(strcmp("__subsf3", symbolName) == 0) {
 	BuildMI(MBB, II, DebugLoc(), TII.get(RISCV::FP32SUB))
+	  .addDef(RISCV::X10)	  
 	  .addUse(RISCV::X10)
-	  .addUse(RISCV::X11)
-	  .addDef(RISCV::X10);
+	  .addUse(RISCV::X11);
+
 	junk.push_back(&MI);
 	MadeChange = true;
       }
