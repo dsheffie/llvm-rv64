@@ -50,7 +50,10 @@ FunctionPass *createRISCVVectorPeepholePass();
 void initializeRISCVVectorPeepholePass(PassRegistry &);
 
 FunctionPass *createRISCVOptWInstrsPass();
+FunctionPass *createRISCVHackyFPPass();
+  
 void initializeRISCVOptWInstrsPass(PassRegistry &);
+void initializeRISCVHackyFPPass(PassRegistry &);
 
 FunctionPass *createRISCVMergeBaseOffsetOptPass();
 void initializeRISCVMergeBaseOffsetOptPass(PassRegistry &);
