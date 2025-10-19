@@ -60,6 +60,8 @@ bool RISCVHackyFP::runOnMachineFunction(MachineFunction &MF) {
   if (!ST.is64Bit())
     return false;
 
+  //return false;
+
   bool MadeChange = false;
   SmallVector<MachineInstr*> junk;
   
@@ -93,6 +95,7 @@ bool RISCVHackyFP::runOnMachineFunction(MachineFunction &MF) {
 	junk.push_back(&MI);
 	MadeChange = true;
       }
+#if 0                  
       else if(strcmp("__subsf3", symbolName) == 0) {
 	BuildMI(MBB, II, DebugLoc(), TII.get(RISCV::FP32SUB))
 	  .addUse(RISCV::X10)
@@ -101,6 +104,7 @@ bool RISCVHackyFP::runOnMachineFunction(MachineFunction &MF) {
 	junk.push_back(&MI);
 	MadeChange = true;
       }
+#endif
       else if(strcmp("__floatsisf", symbolName) == 0) {
 	BuildMI(MBB, II, DebugLoc(), TII.get(RISCV::INT32TOFP32))
 	  .addUse(RISCV::X10)
@@ -114,7 +118,7 @@ bool RISCVHackyFP::runOnMachineFunction(MachineFunction &MF) {
 	  .addDef(RISCV::X10);
 	junk.push_back(&MI);
 	MadeChange = true;
-      }            
+      }
     }
   }
 
