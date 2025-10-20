@@ -699,6 +699,17 @@ def SUB  : ALU_rr<0b0100000, 0b000, "sub">,
            Sched<[WriteIALU, ReadIALU, ReadIALU]>;
 def SLL  : ALU_rr<0b0000000, 0b001, "sll">,
            Sched<[WriteShiftReg, ReadShiftReg, ReadShiftReg]>;
+
+def FP32MUL : ALU_rr<0b0000100, 0b000, "mul.fp32", Commutable=1>,
+               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
+
+def FP32ADD : ALU_rr<0b0000010, 0b000, "add.fp32", Commutable=1>,
+               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
+	       
+def FP32SUB : ALU_rr<0b0000011, 0b000, "sub.fp32">,
+               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
+
+
 let IsSignExtendingOpW = 1 in {
 def SLT  : ALU_rr<0b0000000, 0b010, "slt">,
            Sched<[WriteIALU, ReadIALU, ReadIALU]>;
@@ -1341,6 +1352,11 @@ def : PatGprSimm12<xor, XORI>;
 def : PatGprUimmLog2XLen<shl, SLLI>;
 def : PatGprUimmLog2XLen<srl, SRLI>;
 def : PatGprUimmLog2XLen<sra, SRAI>;
+
+def : PatGprGpr<int_riscv_hacky_fp32_mul, FP32MUL>;
+def : PatGprGpr<int_riscv_hacky_fp32_add, FP32ADD>;
+def : PatGprGpr<int_riscv_hacky_fp32_sub, FP32SUB>;
+
 
 // Select 'or' as ADDI if the immediate bits are known to be 0 in $rs1. This
 // can improve compressibility.

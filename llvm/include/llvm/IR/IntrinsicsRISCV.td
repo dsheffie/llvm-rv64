@@ -25,6 +25,10 @@
 
 let TargetPrefix = "riscv" in {
 
+  def int_riscv_hacky_fp32_add : Intrinsic<[llvm_i32_ty], [llvm_i32_ty, llvm_i32_ty], [IntrNoMem]>;
+  def int_riscv_hacky_fp32_sub : Intrinsic<[llvm_i32_ty], [llvm_i32_ty, llvm_i32_ty], [IntrNoMem]>;
+  def int_riscv_hacky_fp32_mul : Intrinsic<[llvm_i32_ty], [llvm_i32_ty, llvm_i32_ty], [IntrNoMem]>;  
+
   // T @llvm.<name>.T.<p>(any*, T, T, T imm);
   class MaskedAtomicRMWFourArg<LLVMType itype>
       : Intrinsic<[itype], [llvm_anyptr_ty, itype, itype, itype],

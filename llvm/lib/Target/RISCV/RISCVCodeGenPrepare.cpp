@@ -22,6 +22,7 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/InstVisitor.h"
 #include "llvm/IR/Intrinsics.h"
+#include "llvm/IR/IntrinsicsRISCV.h"
 #include "llvm/IR/PatternMatch.h"
 #include "llvm/InitializePasses.h"
 #include "llvm/Pass.h"
@@ -208,10 +209,40 @@ bool RISCVCodeGenPrepare::runOnFunction(Function &F) {
   DT = &getAnalysis<DominatorTreeWrapperPass>().getDomTree();
 
   bool MadeChange = false;
-  for (auto &BB : F)
-    for (Instruction &I : llvm::make_early_inc_range(BB))
+  for (auto &BB : F) {
+    for (Instruction &I : llvm::make_early_inc_range(BB)) {
       MadeChange |= visit(I);
+    }
+  }
 
+  for (auto &BB : F) {
+    for (Instruction &I : llvm::make_early_inc_range(BB)) {
+      if(not(I.getType()->isFloatTy())) {
+	continue;
+      }
+      
+      switch(I.getOpcode())
+	{
+	case Instruction::FAdd: {
+	  IRBuilder<> Builder(&I);
+	  auto ty = Builder.getInt32Ty();
+	  auto s0 = Builder.CreateBitCast(I.getOperand(0), ty);
+	  auto s1 = Builder.CreateBitCast(I.getOperand(1), ty);	    
+	  Value *Res = Builder.CreateIntrinsic(ty, Intrinsic::riscv_hacky_fp32_add, {s0, s1});
+	  auto fp = Builder.CreateBitCast(Res, Builder.getFloatTy());	    	  
+	  I.replaceAllUsesWith(fp);
+	  I.eraseFromParent();	  
+	  llvm::errs() << BB;
+	  MadeChange = true; 
+	  break;
+	}
+	default:
+	  break;
+	}
+    }
+  }
+
+  
   return MadeChange;
 }
 
