@@ -79,34 +79,7 @@ bool RISCVHackyFP::runOnMachineFunction(MachineFunction &MF) {
 	continue;
       }
       const char *symbolName = Func.getSymbolName();
-      if(strcmp("__mulsf3", symbolName) == 0) {
-	BuildMI(MBB, II, DebugLoc(), TII.get(RISCV::FP32MUL))
-	  .addUse(RISCV::X10)
-	  .addUse(RISCV::X11)
-	  .addDef(RISCV::X10);
-	junk.push_back(&MI);
-	MadeChange = true;
-      }
-      else if(strcmp("__addsf3", symbolName) == 0) {
-	BuildMI(MBB, II, DebugLoc(), TII.get(RISCV::FP32ADD))
-	  .addUse(RISCV::X10)
-	  .addUse(RISCV::X11)
-	  .addDef(RISCV::X10);
-	junk.push_back(&MI);
-	MadeChange = true;
-      }
-#if 1                  
-      else if(strcmp("__subsf3", symbolName) == 0) {
-	BuildMI(MBB, II, DebugLoc(), TII.get(RISCV::FP32SUB))
-	  .addDef(RISCV::X10)	  
-	  .addUse(RISCV::X10)
-	  .addUse(RISCV::X11);
-
-	junk.push_back(&MI);
-	MadeChange = true;
-      }
-#endif
-      else if(strcmp("__floatsisf", symbolName) == 0) {
+      if(strcmp("__floatsisf", symbolName) == 0) {
 	BuildMI(MBB, II, DebugLoc(), TII.get(RISCV::INT32TOFP32))
 	  .addUse(RISCV::X10)
 	  .addDef(RISCV::X10);

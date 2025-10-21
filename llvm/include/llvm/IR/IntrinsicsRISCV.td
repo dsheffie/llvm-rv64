@@ -25,9 +25,11 @@
 
 let TargetPrefix = "riscv" in {
 
-  def int_riscv_hacky_fp32_add : Intrinsic<[llvm_i32_ty], [llvm_i32_ty, llvm_i32_ty], [IntrNoMem, IntrSpeculatable]>;
-  def int_riscv_hacky_fp32_sub : Intrinsic<[llvm_i32_ty], [llvm_i32_ty, llvm_i32_ty], [IntrNoMem, IntrSpeculatable]>;
-  def int_riscv_hacky_fp32_mul : Intrinsic<[llvm_i32_ty], [llvm_i32_ty, llvm_i32_ty], [IntrNoMem, IntrSpeculatable]>;  
+  def int_riscv_hacky_fp32_add : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
+  def int_riscv_hacky_fp32_sub : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
+  def int_riscv_hacky_fp32_mul : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
+  def int_riscv_hacky_fp32_int32_cvt : Intrinsic<[llvm_i64_ty], [llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
+  def int_riscv_hacky_int32_fp32_cvt : Intrinsic<[llvm_i64_ty], [llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;      
 
   // T @llvm.<name>.T.<p>(any*, T, T, T imm);
   class MaskedAtomicRMWFourArg<LLVMType itype>

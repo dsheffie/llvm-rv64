@@ -214,31 +214,96 @@ bool RISCVCodeGenPrepare::runOnFunction(Function &F) {
       MadeChange |= visit(I);
     }
   }
+  
 
+ for (auto &BB : F) {
+    for (Instruction &I : llvm::make_early_inc_range(BB)) {
+      if(not(I.getType()->isFloatTy())) {
+        continue;
+      }
+      CallInst *CI = dyn_cast<CallInst>(&I);
+      if(CI == nullptr) {
+        continue;
+      }
+      if(CI->getIntrinsicID() != Intrinsic::fmuladd) {
+	continue;
+      }
+      IRBuilder<> Builder(&I);
+      Value *M = Builder.CreateFMul(I.getOperand(0), I.getOperand(1));
+      Value *A = Builder.CreateFAdd(M, I.getOperand(2));
+      I.replaceAllUsesWith(A);
+      I.eraseFromParent();	  
+      MadeChange = true;
+    }
+ }
+
+
+  
   for (auto &BB : F) {
     for (Instruction &I : llvm::make_early_inc_range(BB)) {
+      // %2 = sitofp i32 %0 to float
+      SIToFPInst *SI = dyn_cast<SIToFPInst>(&I);
+      if(SI and I.getType()->isFloatTy() and I.getOperand(0)->getType()->isIntegerTy(32) ) {
+	IRBuilder<> Builder(&I);
+	auto ty32 = Builder.getInt32Ty();	
+	auto ty64 = Builder.getInt64Ty();
+	auto s = Builder.CreateSExt(I.getOperand(0), ty64);
+	Value * Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_int32_fp32_cvt, s);
+	Res = Builder.CreateTrunc(Res, ty32);
+	auto fp = Builder.CreateBitCast(Res, Builder.getFloatTy());	    	  
+	I.replaceAllUsesWith(fp);
+	I.eraseFromParent();	  
+	MadeChange = true; 	
+      }
+      FPToSIInst *FP = dyn_cast<FPToSIInst>(&I);      
+      if(FP and I.getType()->isIntegerTy(32) and I.getOperand(0)->getType()->isFloatTy() ) {
+	IRBuilder<> Builder(&I);
+	auto ty32 = Builder.getInt32Ty();	
+	auto ty64 = Builder.getInt64Ty();
+	auto s = Builder.CreateBitCast(I.getOperand(0), ty32);
+	s = Builder.CreateSExt(s, ty64);	
+	Value * Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_int32_cvt, s);
+	Res = Builder.CreateTrunc(Res, ty32);
+	I.replaceAllUsesWith(Res);
+	I.eraseFromParent();	  
+	MadeChange = true; 	
+      }
+
+      unsigned op = I.getOpcode();      
       if(not(I.getType()->isFloatTy())) {
 	continue;
       }
+
+      if(op == Instruction::FAdd or op == Instruction::FSub or op == Instruction::FMul) {
+	IRBuilder<> Builder(&I);
+	auto ty32 = Builder.getInt32Ty();
+	auto ty64 = Builder.getInt64Ty();	  
+	auto s0 = Builder.CreateBitCast(I.getOperand(0), ty32);
+	auto s1 = Builder.CreateBitCast(I.getOperand(1), ty32);
+	s0 = Builder.CreateSExt(s0, ty64);
+	s1 = Builder.CreateSExt(s1, ty64);
+	Value * Res = nullptr;
+	switch(op)
+	  {
+	  case Instruction::FAdd:
+	    Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_add, {s0, s1});
+	    break;
+	  case Instruction::FSub:
+	    Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_sub, {s0, s1});
+	    break;
+	  case Instruction::FMul:
+	    Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_mul, {s0, s1});
+	    break;	  	  
+	  default:
+	    break;
+	  }
+	Res = Builder.CreateTrunc(Res, ty32);
+	auto fp = Builder.CreateBitCast(Res, Builder.getFloatTy());	    	  
+	I.replaceAllUsesWith(fp);
+	I.eraseFromParent();	  
+	MadeChange = true; 
+      }
       
-      switch(I.getOpcode())
-	{
-	case Instruction::FAdd: {
-	  IRBuilder<> Builder(&I);
-	  auto ty = Builder.getInt32Ty();
-	  auto s0 = Builder.CreateBitCast(I.getOperand(0), ty);
-	  auto s1 = Builder.CreateBitCast(I.getOperand(1), ty);	    
-	  Value *Res = Builder.CreateIntrinsic(ty, Intrinsic::riscv_hacky_fp32_add, {s0, s1});
-	  auto fp = Builder.CreateBitCast(Res, Builder.getFloatTy());	    	  
-	  I.replaceAllUsesWith(fp);
-	  I.eraseFromParent();	  
-	  llvm::errs() << BB;
-	  MadeChange = true; 
-	  break;
-	}
-	default:
-	  break;
-	}
     }
   }
 

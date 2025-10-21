@@ -301,6 +301,12 @@ static bool hasAllNBitUsers(const MachineInstr &OrigMI,
       case RISCV::COPY:
       case RISCV::PHI:
 
+      case RISCV::FP32MUL:
+      case RISCV::FP32ADD:
+      case RISCV::FP32SUB:	
+      case RISCV::FP32TOINT32:
+      case RISCV::INT32TOFP32:	
+	
       case RISCV::ADD:
       case RISCV::ADDI:
       case RISCV::AND:
@@ -408,8 +414,10 @@ static bool isSignExtendedW(Register SrcReg, const RISCVSubtarget &ST,
   SmallVector<Register, 4> Worklist;
 
   auto AddRegToWorkList = [&](Register SrcReg) {
-    if (!SrcReg.isVirtual())
+    if (!SrcReg.isVirtual()) {
+      llvm::errs() << "src is not virtual..\n";
       return false;
+    }
     Worklist.push_back(SrcReg);
     return true;
   };
@@ -466,21 +474,29 @@ static bool isSignExtendedW(Register SrcReg, const RISCVSubtarget &ST,
         const MachineBasicBlock *MBB = MI->getParent();
         auto II = MI->getIterator();
         if (II == MBB->instr_begin() ||
-            (--II)->getOpcode() != RISCV::ADJCALLSTACKUP)
+            (--II)->getOpcode() != RISCV::ADJCALLSTACKUP) {
+	  llvm::errs() << __LINE__ << "\n";
           return false;
+	}
 
         const MachineInstr &CallMI = *(--II);
-        if (!CallMI.isCall() || !CallMI.getOperand(0).isGlobal())
+        if (!CallMI.isCall() || !CallMI.getOperand(0).isGlobal()) {
+	  llvm::errs() << __LINE__ << "\n";	  
           return false;
+	}
 
         auto *CalleeFn =
             dyn_cast_if_present<Function>(CallMI.getOperand(0).getGlobal());
-        if (!CalleeFn)
+        if (!CalleeFn) {
+	  llvm::errs() << __LINE__ << "\n";	  
           return false;
+	}
 
         auto *IntTy = dyn_cast<IntegerType>(CalleeFn->getReturnType());
-        if (!IntTy)
+        if (!IntTy) {
+	  llvm::errs() << __LINE__ << "\n";	  
           return false;
+	}
 
         const AttributeSet &Attrs = CalleeFn->getAttributes().getRetAttrs();
         unsigned BitWidth = IntTy->getBitWidth();
@@ -489,8 +505,10 @@ static bool isSignExtendedW(Register SrcReg, const RISCVSubtarget &ST,
           continue;
       }
 
-      if (!AddRegToWorkList(CopySrcReg))
+      if (!AddRegToWorkList(CopySrcReg)) {
+	llvm::errs() << __LINE__ << "\n";	
         return false;
+      }
 
       break;
     }
@@ -644,13 +662,15 @@ bool RISCVOptWInstrs::removeSExtWInstrs(MachineFunction &MF,
   if (DisableSExtWRemoval)
     return false;
 
+
+  
   bool MadeChange = false;
   for (MachineBasicBlock &MBB : MF) {
     for (MachineInstr &MI : llvm::make_early_inc_range(MBB)) {
       // We're looking for the sext.w pattern ADDIW rd, rs1, 0.
       if (!RISCV::isSEXT_W(MI))
         continue;
-
+      
       Register SrcReg = MI.getOperand(1).getReg();
 
       SmallPtrSet<MachineInstr *, 4> FixableDefs;
@@ -658,13 +678,14 @@ bool RISCVOptWInstrs::removeSExtWInstrs(MachineFunction &MF,
       // If all users only use the lower bits, this sext.w is redundant.
       // Or if all definitions reaching MI sign-extend their output,
       // then sext.w is redundant.
-      if (!hasAllWUsers(MI, ST, MRI) &&
-          !isSignExtendedW(SrcReg, ST, MRI, FixableDefs))
-        continue;
+      if (!hasAllWUsers(MI, ST, MRI) && !isSignExtendedW(SrcReg, ST, MRI, FixableDefs)) {
+	continue;
+      }
 
       Register DstReg = MI.getOperand(0).getReg();
-      if (!MRI.constrainRegClass(SrcReg, MRI.getRegClass(DstReg)))
+      if (!MRI.constrainRegClass(SrcReg, MRI.getRegClass(DstReg))) {
         continue;
+      }
 
       // Convert Fixable instructions to their W versions.
       for (MachineInstr *Fixable : FixableDefs) {
