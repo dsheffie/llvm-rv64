@@ -700,15 +700,26 @@ def SUB  : ALU_rr<0b0100000, 0b000, "sub">,
 def SLL  : ALU_rr<0b0000000, 0b001, "sll">,
            Sched<[WriteShiftReg, ReadShiftReg, ReadShiftReg]>;
 
-def FP32MUL : ALU_rr<0b0000100, 0b000, "mul.fp32", Commutable=1>,
-               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
-
 def FP32ADD : ALU_rr<0b0000010, 0b000, "add.fp32", Commutable=1>,
                Sched<[WriteIALU, ReadIALU, ReadIALU]>;
-	       
+
 def FP32SUB : ALU_rr<0b0000011, 0b000, "sub.fp32">,
                Sched<[WriteIALU, ReadIALU, ReadIALU]>;
 
+def FP32MUL : ALU_rr<0b0000100, 0b000, "mul.fp32", Commutable=1>,
+               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
+
+def FP32CMPLT : ALU_rr<0b0000101, 0b000, "cmp.fp32.lt">,
+               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
+
+def FP32CMPGT : ALU_rr<0b0000110, 0b000, "cmp.fp32.gt">,
+               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
+	       
+def FP32CMPNE : ALU_rr<0b0000111, 0b000, "cmp.fp32.ne">,
+               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
+
+def FP32CMPEQ : ALU_rr<0b0001000, 0b000, "cmp.fp32.eq">,
+               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
 
 let IsSignExtendingOpW = 1 in {
 def SLT  : ALU_rr<0b0000000, 0b010, "slt">,
@@ -1357,6 +1368,10 @@ def : PatGprGpr<int_riscv_hacky_fp32_mul, FP32MUL>;
 def : PatGprGpr<int_riscv_hacky_fp32_add, FP32ADD>;
 def : PatGprGpr<int_riscv_hacky_fp32_sub, FP32SUB>;
 
+def : PatGprGpr<int_riscv_hacky_fp32_cmplt, FP32CMPLT>;
+def : PatGprGpr<int_riscv_hacky_fp32_cmpgt, FP32CMPGT>;
+def : PatGprGpr<int_riscv_hacky_fp32_cmpne, FP32CMPNE>;
+def : PatGprGpr<int_riscv_hacky_fp32_cmpeq, FP32CMPEQ>;
 
 // Select 'or' as ADDI if the immediate bits are known to be 0 in $rs1. This
 // can improve compressibility.

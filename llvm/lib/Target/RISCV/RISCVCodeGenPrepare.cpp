@@ -268,8 +268,44 @@ bool RISCVCodeGenPrepare::runOnFunction(Function &F) {
 	I.eraseFromParent();	  
 	MadeChange = true; 	
       }
+      //fcmp ogt
+      unsigned op = I.getOpcode();
 
-      unsigned op = I.getOpcode();      
+      FCmpInst *FC = dyn_cast<FCmpInst>(&I);
+
+      if(FC and I.getType()->isIntegerTy(1) and I.getOperand(0)->getType()->isFloatTy() and I.getOperand(1)->getType()->isFloatTy()) {
+	switch(FC->getPredicate())
+	  {
+	  case FCmpInst::FCMP_OGT:
+	  case FCmpInst::FCMP_OLT:
+	  case FCmpInst::FCMP_ONE:
+	    break;
+	  default:
+	    continue;
+	  }
+	IRBuilder<> Builder(&I);
+	auto ty32 = Builder.getInt32Ty();
+	auto ty64 = Builder.getInt64Ty();	  
+	auto s0 = Builder.CreateBitCast(I.getOperand(0), ty32);
+	auto s1 = Builder.CreateBitCast(I.getOperand(1), ty32);
+	s0 = Builder.CreateSExt(s0, ty64);
+	s1 = Builder.CreateSExt(s1, ty64);
+	Value * Res = nullptr;
+	if(FC->getPredicate() == FCmpInst::FCMP_OGT) {
+	  Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_cmpgt, {s0, s1});
+	}
+	else if(FC->getPredicate() == FCmpInst::FCMP_OLT) {
+	  Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_cmplt, {s0, s1});
+	}
+	else if(FC->getPredicate() == FCmpInst::FCMP_ONE) {
+	  Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_cmpne, {s0, s1});
+	}	
+	Res = Builder.CreateTrunc(Res, Builder.getInt1Ty());
+	I.replaceAllUsesWith(Res);
+	I.eraseFromParent();	  
+	MadeChange = true; 	
+      }
+      
       if(not(I.getType()->isFloatTy())) {
 	continue;
       }
