@@ -255,6 +255,20 @@ bool RISCVCodeGenPrepare::runOnFunction(Function &F) {
 	I.eraseFromParent();	  
 	MadeChange = true; 	
       }
+      UIToFPInst *UI = dyn_cast<UIToFPInst>(&I);
+      if(UI and I.getType()->isFloatTy() and I.getOperand(0)->getType()->isIntegerTy(32) ) {
+	IRBuilder<> Builder(&I);
+	auto ty32 = Builder.getInt32Ty();	
+	auto ty64 = Builder.getInt64Ty();
+	auto s = Builder.CreateSExt(I.getOperand(0), ty64);
+	Value * Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_uint32_fp32_cvt, s);
+	Res = Builder.CreateTrunc(Res, ty32);
+	auto fp = Builder.CreateBitCast(Res, Builder.getFloatTy());	    	  
+	I.replaceAllUsesWith(fp);
+	I.eraseFromParent();	  
+	MadeChange = true; 	
+      }
+      
       FPToSIInst *FP = dyn_cast<FPToSIInst>(&I);      
       if(FP and I.getType()->isIntegerTy(32) and I.getOperand(0)->getType()->isFloatTy() ) {
 	IRBuilder<> Builder(&I);

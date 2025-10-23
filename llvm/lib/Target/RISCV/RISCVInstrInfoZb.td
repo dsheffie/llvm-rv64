@@ -352,10 +352,13 @@ def FP32TOINT32 : Unary_r<0b011000000111, 0b001, "cvt.fp32.int32">,
 let Predicates = [HasStdExtZbb] in {
 def INT32TOFP32 : Unary_r<0b011000000110, 0b001, "cvt.int32.fp32">,
            Sched<[WriteCPOP, ReadCPOP]>;
+def UINT32TOFP32 : Unary_r<0b011000001000, 0b001, "cvt.uint32.fp32">,
+           Sched<[WriteCPOP, ReadCPOP]>;	   
 }
 
 def : PatGpr<int_riscv_hacky_fp32_int32_cvt, FP32TOINT32>;
 def : PatGpr<int_riscv_hacky_int32_fp32_cvt, INT32TOFP32>;
+def : PatGpr<int_riscv_hacky_uint32_fp32_cvt, UINT32TOFP32>;
 
 let Predicates = [HasStdExtZbb, IsRV64], IsSignExtendingOpW = 1 in {
 def CLZW  : UnaryW_r<0b011000000000, 0b001, "clzw">,
