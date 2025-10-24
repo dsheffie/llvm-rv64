@@ -709,16 +709,29 @@ def FP32SUB : ALU_rr<0b0000011, 0b000, "sub.fp32">,
 def FP32MUL : ALU_rr<0b0000100, 0b000, "mul.fp32", Commutable=1>,
                Sched<[WriteIALU, ReadIALU, ReadIALU]>;
 
-def FP32CMPLT : ALU_rr<0b0000101, 0b000, "cmp.fp32.lt">,
+def FP32CMPOLT : ALU_rr<0b0000101, 0b000, "cmp.o.fp32.lt">,
                Sched<[WriteIALU, ReadIALU, ReadIALU]>;
 
-def FP32CMPGT : ALU_rr<0b0000110, 0b000, "cmp.fp32.gt">,
+def FP32CMPOGT : ALU_rr<0b0000110, 0b000, "cmp.o.fp32.gt">,
                Sched<[WriteIALU, ReadIALU, ReadIALU]>;
 	       
-def FP32CMPNE : ALU_rr<0b0000111, 0b000, "cmp.fp32.ne">,
+def FP32CMPONE : ALU_rr<0b0000111, 0b000, "cmp.o.fp32.ne">,
                Sched<[WriteIALU, ReadIALU, ReadIALU]>;
 
-def FP32CMPEQ : ALU_rr<0b0001000, 0b000, "cmp.fp32.eq">,
+def FP32CMPOEQ : ALU_rr<0b0001000, 0b000, "cmp.o.fp32.eq">,
+               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
+
+
+def FP32CMPULT : ALU_rr<0b0001101, 0b000, "cmp.u.fp32.lt">,
+               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
+
+def FP32CMPUGT : ALU_rr<0b0001010, 0b000, "cmp.u.fp32.gt">,
+               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
+	       
+def FP32CMPUNE : ALU_rr<0b0001011, 0b000, "cmp.u.fp32.ne">,
+               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
+
+def FP32CMPUEQ : ALU_rr<0b0001100, 0b000, "cmp.u.fp32.eq">,
                Sched<[WriteIALU, ReadIALU, ReadIALU]>;
 
 let IsSignExtendingOpW = 1 in {
@@ -1368,10 +1381,15 @@ def : PatGprGpr<int_riscv_hacky_fp32_mul, FP32MUL>;
 def : PatGprGpr<int_riscv_hacky_fp32_add, FP32ADD>;
 def : PatGprGpr<int_riscv_hacky_fp32_sub, FP32SUB>;
 
-def : PatGprGpr<int_riscv_hacky_fp32_cmplt, FP32CMPLT>;
-def : PatGprGpr<int_riscv_hacky_fp32_cmpgt, FP32CMPGT>;
-def : PatGprGpr<int_riscv_hacky_fp32_cmpne, FP32CMPNE>;
-def : PatGprGpr<int_riscv_hacky_fp32_cmpeq, FP32CMPEQ>;
+def : PatGprGpr<int_riscv_hacky_fp32_cmpolt, FP32CMPOLT>;
+def : PatGprGpr<int_riscv_hacky_fp32_cmpogt, FP32CMPOGT>;
+def : PatGprGpr<int_riscv_hacky_fp32_cmpone, FP32CMPONE>;
+def : PatGprGpr<int_riscv_hacky_fp32_cmpoeq, FP32CMPOEQ>;
+
+def : PatGprGpr<int_riscv_hacky_fp32_cmpult, FP32CMPULT>;
+def : PatGprGpr<int_riscv_hacky_fp32_cmpugt, FP32CMPUGT>;
+def : PatGprGpr<int_riscv_hacky_fp32_cmpune, FP32CMPUNE>;
+def : PatGprGpr<int_riscv_hacky_fp32_cmpueq, FP32CMPUEQ>;
 
 // Select 'or' as ADDI if the immediate bits are known to be 0 in $rs1. This
 // can improve compressibility.

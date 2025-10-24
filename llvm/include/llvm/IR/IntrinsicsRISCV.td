@@ -29,10 +29,14 @@ let TargetPrefix = "riscv" in {
   def int_riscv_hacky_fp32_sub : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
   def int_riscv_hacky_fp32_mul : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
 
-  def int_riscv_hacky_fp32_cmplt : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
-  def int_riscv_hacky_fp32_cmpgt : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
-  def int_riscv_hacky_fp32_cmpeq : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;  
-  def int_riscv_hacky_fp32_cmpne : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
+  def int_riscv_hacky_fp32_cmpolt : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
+  def int_riscv_hacky_fp32_cmpogt : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
+  def int_riscv_hacky_fp32_cmpoeq : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;  
+  def int_riscv_hacky_fp32_cmpone : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
+  def int_riscv_hacky_fp32_cmpult : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
+  def int_riscv_hacky_fp32_cmpugt : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
+  def int_riscv_hacky_fp32_cmpueq : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;  
+  def int_riscv_hacky_fp32_cmpune : Intrinsic<[llvm_i64_ty], [llvm_i64_ty, llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;  
 
   def int_riscv_hacky_fp32_int32_cvt : Intrinsic<[llvm_i64_ty], [llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;
   def int_riscv_hacky_int32_fp32_cvt : Intrinsic<[llvm_i64_ty], [llvm_i64_ty], [IntrNoMem, IntrSpeculatable]>;

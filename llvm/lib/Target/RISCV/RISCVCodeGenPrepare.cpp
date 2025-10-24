@@ -303,8 +303,13 @@ bool RISCVCodeGenPrepare::runOnFunction(Function &F) {
 	switch(FC->getPredicate())
 	  {
 	  case FCmpInst::FCMP_OGT:
+	  case FCmpInst::FCMP_ONE:	    
 	  case FCmpInst::FCMP_OLT:
-	  case FCmpInst::FCMP_ONE:
+	  case FCmpInst::FCMP_OEQ:
+	  case FCmpInst::FCMP_UGT:
+	  case FCmpInst::FCMP_UNE:	    
+	  case FCmpInst::FCMP_ULT:
+	  case FCmpInst::FCMP_UEQ:	    
 	    break;
 	  default:
 	    continue;
@@ -317,15 +322,36 @@ bool RISCVCodeGenPrepare::runOnFunction(Function &F) {
 	s0 = Builder.CreateSExt(s0, ty64);
 	s1 = Builder.CreateSExt(s1, ty64);
 	Value * Res = nullptr;
-	if(FC->getPredicate() == FCmpInst::FCMP_OGT) {
-	  Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_cmpgt, {s0, s1});
-	}
-	else if(FC->getPredicate() == FCmpInst::FCMP_OLT) {
-	  Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_cmplt, {s0, s1});
-	}
-	else if(FC->getPredicate() == FCmpInst::FCMP_ONE) {
-	  Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_cmpne, {s0, s1});
-	}	
+	switch(FC->getPredicate())
+	  {
+	  case FCmpInst::FCMP_OGT:
+	    Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_cmpogt, {s0, s1});
+	    break;
+	  case FCmpInst::FCMP_OLT:
+	    Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_cmpolt, {s0, s1});
+	    break;
+	  case FCmpInst::FCMP_ONE:
+	    Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_cmpone, {s0, s1});
+	    break;
+	  case FCmpInst::FCMP_OEQ:
+	    Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_cmpoeq, {s0, s1});
+	    break;
+	  case FCmpInst::FCMP_UGT:
+	    Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_cmpugt, {s0, s1});
+	    break;
+	  case FCmpInst::FCMP_ULT:
+	    Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_cmpult, {s0, s1});
+	    break;
+	  case FCmpInst::FCMP_UNE:
+	    Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_cmpune, {s0, s1});
+	    break;
+	  case FCmpInst::FCMP_UEQ:
+	    Res = Builder.CreateIntrinsic(ty64, Intrinsic::riscv_hacky_fp32_cmpueq, {s0, s1});
+	    break;
+	    
+	  default:
+	    break;
+	  }
 	Res = Builder.CreateTrunc(Res, Builder.getInt1Ty());
 	I.replaceAllUsesWith(Res);
 	I.eraseFromParent();	  

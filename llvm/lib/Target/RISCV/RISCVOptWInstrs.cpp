@@ -304,10 +304,15 @@ static bool hasAllNBitUsers(const MachineInstr &OrigMI,
       case RISCV::FP32MUL:
       case RISCV::FP32ADD:
       case RISCV::FP32SUB:
-      case RISCV::FP32CMPGT:
-      case RISCV::FP32CMPLT:	
-      case RISCV::FP32CMPEQ:
-      case RISCV::FP32CMPNE:	  
+      case RISCV::FP32CMPOGT:
+      case RISCV::FP32CMPOLT:	
+      case RISCV::FP32CMPOEQ:
+      case RISCV::FP32CMPONE:
+      case RISCV::FP32CMPUGT:
+      case RISCV::FP32CMPULT:	
+      case RISCV::FP32CMPUEQ:
+      case RISCV::FP32CMPUNE:	  
+	
       case RISCV::FP32TOINT32:
       case RISCV::INT32TOFP32:	
 	
