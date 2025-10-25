@@ -722,7 +722,7 @@ def FP32CMPOEQ : ALU_rr<0b0001000, 0b000, "cmp.o.fp32.eq">,
                Sched<[WriteIALU, ReadIALU, ReadIALU]>;
 
 
-def FP32CMPULT : ALU_rr<0b0001101, 0b000, "cmp.u.fp32.lt">,
+def FP32CMPULT : ALU_rr<0b0001001, 0b000, "cmp.u.fp32.lt">,
                Sched<[WriteIALU, ReadIALU, ReadIALU]>;
 
 def FP32CMPUGT : ALU_rr<0b0001010, 0b000, "cmp.u.fp32.gt">,
