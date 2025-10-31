@@ -701,13 +701,13 @@ def SLL  : ALU_rr<0b0000000, 0b001, "sll">,
            Sched<[WriteShiftReg, ReadShiftReg, ReadShiftReg]>;
 
 def FP32ADD : ALU_rr<0b0000010, 0b000, "add.fp32", Commutable=1>,
-               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
+               Sched<[WriteIMul, ReadIMul, ReadIMul]>;
 
 def FP32SUB : ALU_rr<0b0000011, 0b000, "sub.fp32">,
-               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
+               Sched<[WriteIMul, ReadIMul, ReadIMul]>;
 
 def FP32MUL : ALU_rr<0b0000100, 0b000, "mul.fp32", Commutable=1>,
-               Sched<[WriteIALU, ReadIALU, ReadIALU]>;
+               Sched<[WriteIMul, ReadIMul, ReadIMul]>;
 
 def FP32CMPOLT : ALU_rr<0b0000101, 0b000, "cmp.o.fp32.lt">,
                Sched<[WriteIALU, ReadIALU, ReadIALU]>;

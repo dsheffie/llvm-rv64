@@ -424,7 +424,7 @@ static bool isSignExtendedW(Register SrcReg, const RISCVSubtarget &ST,
 
   auto AddRegToWorkList = [&](Register SrcReg) {
     if (!SrcReg.isVirtual()) {
-      llvm::errs() << "src is not virtual..\n";
+      //llvm::errs() << "src is not virtual..\n";
       return false;
     }
     Worklist.push_back(SrcReg);
@@ -484,26 +484,22 @@ static bool isSignExtendedW(Register SrcReg, const RISCVSubtarget &ST,
         auto II = MI->getIterator();
         if (II == MBB->instr_begin() ||
             (--II)->getOpcode() != RISCV::ADJCALLSTACKUP) {
-	  llvm::errs() << __LINE__ << "\n";
           return false;
 	}
 
         const MachineInstr &CallMI = *(--II);
         if (!CallMI.isCall() || !CallMI.getOperand(0).isGlobal()) {
-	  llvm::errs() << __LINE__ << "\n";	  
           return false;
 	}
 
         auto *CalleeFn =
             dyn_cast_if_present<Function>(CallMI.getOperand(0).getGlobal());
         if (!CalleeFn) {
-	  llvm::errs() << __LINE__ << "\n";	  
           return false;
 	}
 
         auto *IntTy = dyn_cast<IntegerType>(CalleeFn->getReturnType());
         if (!IntTy) {
-	  llvm::errs() << __LINE__ << "\n";	  
           return false;
 	}
 
@@ -515,7 +511,6 @@ static bool isSignExtendedW(Register SrcReg, const RISCVSubtarget &ST,
       }
 
       if (!AddRegToWorkList(CopySrcReg)) {
-	llvm::errs() << __LINE__ << "\n";	
         return false;
       }
 
@@ -674,22 +669,123 @@ bool RISCVOptWInstrs::removeSExtWInstrs(MachineFunction &MF,
 
   
   bool MadeChange = false;
+  
+  for (MachineBasicBlock &MBB : MF) {
+  retry:    
+    for (MachineInstr &MI : llvm::make_early_inc_range(MBB)) {
+      switch(MI.getOpcode())
+	{
+	case RISCV::FP32MUL:
+	case RISCV::FP32ADD:
+	case RISCV::FP32SUB:
+	  break;
+	default:
+	  continue;
+	  break;
+	}
+      //iterate over the users of this fp insn
+      Register DestReg = MI.getOperand(0).getReg();
+      if (!DestReg.isVirtual()) {
+	continue;
+      }
+
+      for (auto &UserOp : MRI.use_nodbg_operands(DestReg)) {
+	MachineInstr *UserMI = UserOp.getParent();
+	if (!RISCV::isSEXT_W(*UserMI)) {
+	  continue;
+	}
+	//llvm::errs() << "consider " << *UserMI;
+
+	Register SrcReg = UserMI->getOperand(1).getReg();
+	Register DstReg = UserMI->getOperand(0).getReg();
+	if (!MRI.constrainRegClass(SrcReg, MRI.getRegClass(DstReg))) {
+	  continue;
+	}
+
+	//llvm::errs() << "erase " << *UserMI;
+	
+	MRI.replaceRegWith(DstReg, SrcReg);
+
+	//llvm::errs() << "replaced reg\n";
+	
+	MRI.clearKillFlags(SrcReg);
+
+	//llvm::errs() << "clear kill flags\n";
+	
+	UserMI->eraseFromParent();
+
+	//llvm::errs() << "erase done\n";
+	++NumRemovedSExtW;
+	MadeChange = true;
+
+	//llvm::errs() << "goto next loop iteration\n";
+	goto retry;
+      }
+    }    
+  }
+
+  //llvm::errs() << "done\n";
+  for (MachineBasicBlock &MBB : MF) {
+    for (MachineInstr &MI : llvm::make_early_inc_range(MBB)) {
+      // We're looking for the sext.w pattern ADDIW rd, rs1, 0.
+      if (!RISCV::isSEXT_W(MI)) {
+        continue;
+      }
+      Register SrcReg = MI.getOperand(1).getReg();     
+      Register DestReg = MI.getOperand(0).getReg();
+      if (!DestReg.isVirtual()) {
+	continue;
+      }
+      
+      //check if all uses are fp isns
+      bool badUser = false;
+      for (auto &UserOp : MRI.use_nodbg_operands(DestReg)) {
+	MachineInstr *UserMI = UserOp.getParent();
+	switch(UserMI->getOpcode())
+	  {
+	  case RISCV::FP32MUL:
+	  case RISCV::FP32ADD:
+	  case RISCV::FP32SUB:
+	    continue;
+	  default:
+	    badUser = true;
+	    break;
+	  }
+      }
+      if(badUser) {
+	continue;
+      }
+      Register DstReg = MI.getOperand(0).getReg();
+      if (!MRI.constrainRegClass(SrcReg, MRI.getRegClass(DstReg))) {
+        continue;
+      }
+      MRI.replaceRegWith(DstReg, SrcReg);
+      MRI.clearKillFlags(SrcReg);
+      MI.eraseFromParent();
+      ++NumRemovedSExtW;
+      MadeChange = true;
+      //all users are fp32 instructions that dont care about sext
+      //llvm::errs() << MI;
+    }
+  }
+  
   for (MachineBasicBlock &MBB : MF) {
     for (MachineInstr &MI : llvm::make_early_inc_range(MBB)) {
       // We're looking for the sext.w pattern ADDIW rd, rs1, 0.
       if (!RISCV::isSEXT_W(MI))
         continue;
       
-      Register SrcReg = MI.getOperand(1).getReg();
-
+      Register SrcReg = MI.getOperand(1).getReg();     
       SmallPtrSet<MachineInstr *, 4> FixableDefs;
-
+      
       // If all users only use the lower bits, this sext.w is redundant.
       // Or if all definitions reaching MI sign-extend their output,
       // then sext.w is redundant.
-      if (!hasAllWUsers(MI, ST, MRI) && !isSignExtendedW(SrcReg, ST, MRI, FixableDefs)) {
+      if (!hasAllWUsers(MI, ST, MRI) && !isSignExtendedW(SrcReg, ST, MRI, FixableDefs) ) {
 	continue;
       }
+
+      
 
       Register DstReg = MI.getOperand(0).getReg();
       if (!MRI.constrainRegClass(SrcReg, MRI.getRegClass(DstReg))) {

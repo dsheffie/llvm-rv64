@@ -76,7 +76,7 @@ def : WriteRes<WriteSHXADD, [DsheffieUnitALU]>;
 def : WriteRes<WriteSHXADD32, [DsheffieUnitALU]>;
 
 // Integer multiplication
-let Latency = 4 in {
+let Latency = 5 in {
 def : WriteRes<WriteIMul, [DsheffieUnitIMul]>;
 def : WriteRes<WriteIMul32, [DsheffieUnitIMul]>;
 }
